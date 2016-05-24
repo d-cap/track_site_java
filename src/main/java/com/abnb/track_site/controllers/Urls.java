@@ -14,4 +14,9 @@ public class Urls {
 		return "[]";
 	}
 
+	@RequestMapping(method = RequestMethod.GET, path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public String show() {
+		return "[]";
+	}
+
 }
