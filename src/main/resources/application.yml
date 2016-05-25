@@ -5,6 +5,7 @@ spring:
         database: postgresql
         open-in-view: false
         show_sql: true
+        format_sql: true
     hibernate:
         ddl-auto: none
         naming-strategy: org.springframework.boot.orm.jpa.hibernate.SpringNamingStrategy
@@ -32,5 +33,13 @@ spring:
 ---
 spring:
     profiles: test
+    hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        hbm2ddl.auto: create-drop
+        ejb:
+            naming_strategy: org.hibernate.cfg.ImprovedNamingStrategy
     datasource:
-        url: 'jdbc:postgresql://localhost:5432/track_site_test'
+        url: jdbc:h2:file:~/test/testdb;DB_CLOSE_ON_EXIT=FALSE
+        username: sa
+        password: sa
+        driverClassName: org.h2.Driver
