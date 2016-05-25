@@ -1,0 +1,36 @@
+spring:
+    application:
+        name: track-site
+    jpa:
+        database: postgresql
+        open-in-view: false
+        show_sql: true
+    hibernate:
+        ddl-auto: none
+        naming-strategy: org.springframework.boot.orm.jpa.hibernate.SpringNamingStrategy
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+        hibernate.cache.use_second_level_cache: false
+        hibernate.cache.use_query_cache: false
+        hibernate.generate_statistics: true
+        hibernate.hbm2ddl.auto: validate
+        hibernate.show_sql: true
+    datasource:
+        driverClassName: org.postgresql.Driver
+        maxActive: 10
+        maxIdle: 5
+        minIdle: 2
+        initialSize: 5
+        removeAbandoned: true
+        username: postgres
+        password: password
+---
+spring:
+    profiles: development
+    datasource:
+        url: 'jdbc:postgresql://localhost:5432/track_site_development'
+---
+spring:
+    profiles: test
+    datasource:
+        url: 'jdbc:postgresql://localhost:5432/track_site_test'

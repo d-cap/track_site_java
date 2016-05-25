@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,35 +19,36 @@ import org.springframework.web.context.WebApplicationContext;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = Main.class)
 @WebAppConfiguration
+@ActiveProfiles(profiles = {"default", "test"})
 public class UrlsTest {
 
-	private MockMvc mockMvc;
+    private MockMvc mockMvc;
 
-	@Autowired
-	private WebApplicationContext webApplicationContext;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
-	@Before
+    @Before
 
-	public void setUp() {
-		this.mockMvc = webAppContextSetup(webApplicationContext).build();
-	}
+    public void setUp() {
+        this.mockMvc = webAppContextSetup(webApplicationContext).build();
+    }
 
-	/**
-	 * Test of index method, of class Urls.
-	 */
-	@Test
-	public void testIndex() throws Exception {
-		mockMvc.perform(get("/urls/").contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
-	}
+    /**
+     * Test of index method, of class Urls.
+     */
+    @Test
+    public void testIndex() throws Exception {
+        mockMvc.perform(get("/urls/").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 
-	/**
-	 * Test of show method, of class Urls.
-	 */
-	@Test
-	public void testShow() throws Exception {
-		mockMvc.perform(get("/urls/1").contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
-	}
+    /**
+     * Test of show method, of class Urls.
+     */
+    @Test
+    public void testShow() throws Exception {
+        mockMvc.perform(get("/urls/1").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 
 }
