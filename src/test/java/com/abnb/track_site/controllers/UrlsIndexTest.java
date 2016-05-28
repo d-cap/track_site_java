@@ -4,8 +4,9 @@ import com.abnb.track_site.Main;
 import com.abnb.track_site.model.Url;
 import com.abnb.track_site.repository.UrlRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,28 +67,24 @@ public class UrlsIndexTest {
     @Test
     public void testIndexWithData() throws Exception {
         List<Url> urls = initDataTestIndexWithData();
-        urlRepository.save(urls);
         String jsonContent = mapper.writeValueAsString(urls);
         mockMvc.perform(get("/urls/").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json(jsonContent));
     }
 
-    private List<Url> initDataTestIndexWithData() {
+    private List<Url> initDataTestIndexWithData() throws IOException, NoSuchAlgorithmException {
         List<Url> urls = new ArrayList<>();
         Url url;
         url = new Url();
         url.setAddress("http://www.google.com/");
         url.setName("Google");
-        url.setCreatedAt(new Date());
-        url.setUpdatedAt(new Date());
         urls.add(url);
         url = new Url();
         url.setAddress("http://www.facebook.com/");
         url.setName("Facebook");
-        url.setCreatedAt(new Date());
-        url.setUpdatedAt(new Date());
         urls.add(url);
+        urlRepository.save(urls);
         return urls;
     }
 

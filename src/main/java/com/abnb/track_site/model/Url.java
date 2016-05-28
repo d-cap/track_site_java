@@ -1,6 +1,12 @@
 package com.abnb.track_site.model;
 
+import com.abnb.track_site.utility.Util;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.io.IOException;
+
 import java.io.Serializable;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -8,11 +14,21 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
+import org.hibernate.validator.constraints.URL;
 
 @Entity
 @Table(name = "urls", schema = "public")
@@ -23,20 +39,19 @@ public class Url implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     private Integer id;
-    @Size(max = 2147483647)
+    @Size(min = 3, max = 2147483647)
     private String name;
-    @Size(max = 2147483647)
+    @Size(min = 5, max = 2147483647)
+    @URL
     private String address;
-    @Size(max = 2147483647)
     @Column(name = "last_version_hash")
+    @JsonIgnore
     private String lastVersionHash;
     @Basic(optional = false)
-    @NotNull
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
     @Basic(optional = false)
-    @NotNull
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
@@ -74,32 +89,31 @@ public class Url implements Serializable {
         return address;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(String address) throws IOException, NoSuchAlgorithmException {
         this.address = address;
+        calculateLastVersionHash();
+
+    }
+
+    private void calculateLastVersionHash() throws IOException, NoSuchAlgorithmException {
+        HttpGet request = new HttpGet(this.address);
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        HttpResponse response = httpClient.execute(request);
+        HttpEntity entity = response.getEntity();
+        String entityContents = EntityUtils.toString(entity);
+        this.lastVersionHash = Util.toSHA1(entityContents);
     }
 
     public String getLastVersionHash() {
         return lastVersionHash;
     }
 
-    public void setLastVersionHash(String lastVersionHash) {
-        this.lastVersionHash = lastVersionHash;
-    }
-
     public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public Date getUpdatedAt() {
         return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     @Override
@@ -111,15 +125,11 @@ public class Url implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof Url)) {
             return false;
         }
         Url other = (Url) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+        return !((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id)));
     }
 
     @Override
@@ -127,4 +137,19 @@ public class Url implements Serializable {
         return "com.abnb.track_site.model.Url[ id=" + id + " ]";
     }
 
+    @PrePersist
+    public void prePersiste() {
+        this.createdAt = new Date();
+        this.updatedAt = this.createdAt;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = new Date();
+    }
+
+    public void update(Url sentUrl) {
+        this.name = sentUrl.getName();
+        this.address = sentUrl.getAddress();
+    }
 }
