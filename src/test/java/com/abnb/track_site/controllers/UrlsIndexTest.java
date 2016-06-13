@@ -3,11 +3,16 @@ package com.abnb.track_site.controllers;
 import com.abnb.track_site.Main;
 import com.abnb.track_site.model.Url;
 import com.abnb.track_site.repository.UrlRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.Assert;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,6 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -45,6 +51,7 @@ public class UrlsIndexTest {
     public void setUp() {
         this.mockMvc = webAppContextSetup(webApplicationContext).build();
         this.mapper = new ObjectMapper();
+        this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     /**
@@ -56,7 +63,7 @@ public class UrlsIndexTest {
     public void testIndex() throws Exception {
         mockMvc.perform(get("/urls/").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json("[]"));
+                .andExpect(content().json("{}"));
     }
 
     /**
@@ -67,10 +74,14 @@ public class UrlsIndexTest {
     @Test
     public void testIndexWithData() throws Exception {
         List<Url> urls = initDataTestIndexWithData();
-        String jsonContent = mapper.writeValueAsString(urls);
-        mockMvc.perform(get("/urls/").contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = mockMvc.perform(get("/urls/").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json(jsonContent));
+                .andReturn();
+        JsonNode root = mapper.readTree(result.getResponse().getContentAsByteArray());
+        List<Url> returnUrls = mapper.readValue(root.get("_embedded").get("urlList").toString(), new TypeReference<List<Url>>() {
+        });
+        Assert.assertEquals(urls.size(), returnUrls.size());
+        Assert.assertArrayEquals(urls.toArray(), returnUrls.toArray());
     }
 
     private List<Url> initDataTestIndexWithData() throws IOException, NoSuchAlgorithmException {

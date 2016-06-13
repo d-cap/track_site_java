@@ -3,6 +3,7 @@ package com.abnb.track_site.controllers;
 import com.abnb.track_site.Main;
 import com.abnb.track_site.model.Url;
 import com.abnb.track_site.repository.UrlRepository;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -47,6 +48,7 @@ public class UrlsShowTest {
     public void setUp() {
         this.mockMvc = webAppContextSetup(webApplicationContext).build();
         this.mapper = new ObjectMapper();
+        this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     /**

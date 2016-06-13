@@ -5,18 +5,19 @@ import com.abnb.track_site.utility.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.hateoas.VndErrors;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.util.MimeType;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Locale;
 
 @ControllerAdvice
+@RequestMapping(produces = "application/vnd.error")
 public class ControllerValidationHandler {
     @Autowired
     private MessageSource msgSource;
@@ -24,19 +25,19 @@ public class ControllerValidationHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public ValidationMessage processValidationError(MethodArgumentNotValidException ex) {
-        BindingResult result = ex.getBindingResult();
+    public VndErrors processValidationError(MethodArgumentNotValidException e) {
+        BindingResult result = e.getBindingResult();
         FieldError error = result.getFieldError();
 
-        return processFieldError(error);
+        return processFieldError(e.getLocalizedMessage(), error);
     }
 
-    private ValidationMessage processFieldError(FieldError error) {
-        ValidationMessage message = null;
+    private VndErrors processFieldError(String logref, FieldError error) {
+        VndErrors message = null;
         if (error != null) {
             Locale currentLocale = LocaleContextHolder.getLocale();
             String msg = msgSource.getMessage(error.getDefaultMessage(), null, currentLocale);
-            message = new ValidationMessage(MessageType.ERROR, msg);
+            message = new VndErrors(logref, msg);
         }
         return message;
     }
